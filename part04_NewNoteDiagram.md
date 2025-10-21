@@ -6,7 +6,7 @@ sequenceDiagram
 
   Note over user: fill the form and save
 
-  server->>browser: Submit form
+  user->>browser: Submit form
   activate browser
 
   browser->>server: POST https://studies.cs.helsinki.fi/exampleapp/new_note
@@ -39,7 +39,7 @@ sequenceDiagram
   server->>browser: data.json
   deactivate server
 
-  browser->>User: show new note data
+  browser->>user: show new note data
   deactivate browser
 ```
   
