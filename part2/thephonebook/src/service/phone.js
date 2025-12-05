@@ -1,7 +1,7 @@
 import axios from "axios";
 import { ssrDynamicImportKey } from "vite/module-runner";
 
-const baseUrl = 'http://localhost:3002/person'
+const baseUrl = '/api/persons'
 
 const getAll= () => {
     const request = axios.get(baseUrl)
