@@ -12,7 +12,6 @@ const password = process.argv[2]
 const url = `mongodb+srv://fadelahmadf_db_user:${password}@cluster0.ndxvanv.mongodb.net/noteApp?retryWrites=true&w=majority&appName=Cluster0`
 
 mongoose.set('strictQuery', false) // to disallowed to query that not in schema
-
 mongoose.connect(url, {family: 4}) // to choose IPv4
 
 const noteSchema = new mongoose.Schema({
