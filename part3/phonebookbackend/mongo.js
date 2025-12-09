@@ -1,42 +1,37 @@
-const mongoose = require('mongoose')
+// const mongoose = require('mongoose')
 
-if (process.argv.length<3){
-    console.log('give password as argument')
-    process.exit(1)
-}
+// if (process.argv.length<3){
+//     console.log('give password as argument')
+//     process.exit(1)
+// }
 
+// const url = process.env.MONGODB_URI
 
+// mongoose.set('strictQuery', false)
 
+// mongoose.connect(url, {family: 4})
 
-const password = process.argv[2]
+// const phoneSchema = new mongoose.Schema({
+//     name: String,
+//     number: String
+// })
 
-const url = `mongodb+srv://fadelahmadf_db_user:${password}@cluster0.ndxvanv.mongodb.net/phonebookApp?retryWrites=true&w=majority&appName=Cluster0`
+// const Phone = mongoose.model('Phone', phoneSchema)
 
-mongoose.set('strictQuery', false)
+// console.log('sampe sini jalan')
+// if (process.argv.length === 3){
 
-mongoose.connect(url, {family: 4})
+//     Phone.find({}).then(persons => {
 
-const phoneSchema = new mongoose.Schema({
-    name: String,
-    number: String
-})
+//         console.log('phonebook:') 
+//         persons.forEach(person => {
+//             console.log(`${person.name} ${person.number}`)
+//         })
 
-const Phone = mongoose.model('Phone', phoneSchema)
+//         mongoose.connection.close()
+//     })
 
-console.log('sampe sini jalan')
-if (process.argv.length === 3){
-
-    Phone.find({}).then(persons => {
-
-        console.log('phonebook:') 
-        persons.forEach(person => {
-            console.log(`${person.name} ${person.number}`)
-        })
-
-        mongoose.connection.close()
-    })
-
-}
+// }
 
 // const phone = new Phone({
 //     name: process.argv[3],

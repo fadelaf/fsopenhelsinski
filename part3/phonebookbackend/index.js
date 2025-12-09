@@ -1,8 +1,10 @@
+require('dotenv').config()
 const express = require('express')
-console.log(express)
 const app = express()
 const cors = require('cors')
 const morgan = require('morgan')
+const Person = require('./models/phone')
+const { default: mongoose } = require('mongoose')
 
 // Buat token baru bernama 'postdata'
 morgan.token('postdata', (req, res) => {
@@ -75,20 +77,32 @@ app.get('/', (request, response) => {
 
 app.get('/api/persons', (request, response) => {
     countInform += 1
-    response.json(persons)
+    Person.find({}).then(person => {
+      response.json(person)
+      // mongoose.connection.close()
+    })
 })
 
 app.get('/api/persons/:id', (request, response) => {
-    const id = request.params.id
-    console.log(id)
-    const person = persons.find(person => person.id === id)
-    console.log(person)
 
-    if(person){
+    /* previous excercise */
+    const id = request.params.id
+    // console.log(id)
+    // const person = persons.find(person => person.id === id)
+    // console.log(person)
+
+    // if(person){
+    //     response.json(person)
+    // } else {
+    //     response.status(404).end()
+    // }
+
+    // Mongo DB exercise
+
+    Person.findById({id})
+      .then(person => {
         response.json(person)
-    } else {
-        response.status(404).end()
-    }
+      })
 
 })
 
@@ -101,34 +115,29 @@ app.get('/info', (request, response) => {
 
 app.delete('/api/persons/:id', (request, response) => {
     const id = request.params.id
-    person = persons.filter(note => note.id !== id)
 
-    response.json(person)
-    response.status(204).end()
+    Person.findByIdAndDelete(id)
+      .then(deletedPerson => {
+        if(!deletedPerson) {
+          return response.status(404).json({
+            error: `Person with id ${id} not found`
+          })
+        }
+
+        response.status(204).end()
+      })
+      .catch(err => {
+        console.log(err)
+        response.status(400).json({error: 'something wrong'})
+      })
+      
 })
 
-app.put('/api/persons/:id', (request, response) => {
-    const {content, important } = request.body
-    const id = request.params.id 
-    // console.log(content, important, id) 
-   
-    const noteIndex = notes.findIndex(note => note.id === id)
-    // console.log(noteIndex)
+// app.put('/api/persons/:id', (request, response) => {
+//     const {content, important } = request.body
+//     const id = request.params.id 
 
-    if (noteIndex === -1) {
-        console.log('note not found')
-        return response.status(404).json({ error: 'note not found' })
-    }
-
-    notes[noteIndex] = {
-      ...notes[noteIndex],
-      content: content,
-      important: !notes[noteIndex].important
-    }
-
-    // console.log(notes[noteIndex])
-    response.json(notes[noteIndex])
-})
+// })
 
 
 const generateId = () => {
@@ -156,22 +165,27 @@ app.post('/api/persons', (request, response) => {
       })
     }
 
-    const personDuplicate = persons.find(person => person.name === name)
+    Person.findOne({name: name})
+    .then(existingPerson => {
+      if(existingPerson){
+          return response.status(400).json({
+            error: 'name already exists'
+          })
+      }
 
-    if(personDuplicate){
-       return response.status(400).json({
-        error: 'name already exists in the phonebook'
+
+      const person =  new Person({
+        name: name,
+        number: number
       })
-    }
 
-    const person = {
-      name: name,
-      number: number,
-      id: generateId()
-    }
+      person.save().then(savedPerson => {
+        response.json(savedPerson)
+      })
 
-    persons = persons.concat(person)
-    response.json(person)
+    })
+  
+
 })
 
 const unknownEndpoint = (request, response) => {
@@ -180,7 +194,7 @@ const unknownEndpoint = (request, response) => {
 
 app.use(unknownEndpoint)
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
 })
