@@ -26,15 +26,6 @@ const requestLogger = (request, response, next) => {
   next()
 }
 
-const errorHandler = (error, request, response, next) => {
-  console.error(error.message)
-
-  if (error.name === 'CastError') {
-    return response.status(400).send({ error: 'malformatted id' })
-  }
-
-  next(error)
-}
 
 app.use(cors())
 app.use(express.json())
@@ -75,15 +66,16 @@ app.get('/', (request, response) => {
     response.json('<h1>Hello World!</h1>')
 })
 
-app.get('/api/persons', (request, response) => {
+app.get('/api/persons', (request, response, next) => {
     countInform += 1
     Person.find({}).then(person => {
       response.json(person)
       // mongoose.connection.close()
     })
+    .catch(err => next(err))
 })
 
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', (request, response, next) => {
 
     /* previous excercise */
     const id = request.params.id
@@ -99,10 +91,16 @@ app.get('/api/persons/:id', (request, response) => {
 
     // Mongo DB exercise
 
-    Person.findById({id})
+    Person.findById(id)
       .then(person => {
-        response.json(person)
+        if(person) {
+           response.json(person)
+        } else {
+          response.status(404).end()
+        }
+   
       })
+      .catch(err => next(err))
 
 })
 
@@ -113,7 +111,7 @@ app.get('/info', (request, response) => {
         <div>${date}</div>`)
 })
 
-app.delete('/api/persons/:id', (request, response) => {
+app.delete('/api/persons/:id', (request, response, next) => {
     const id = request.params.id
 
     Person.findByIdAndDelete(id)
@@ -128,16 +126,43 @@ app.delete('/api/persons/:id', (request, response) => {
       })
       .catch(err => {
         console.log(err)
-        response.status(400).json({error: 'something wrong'})
+        next(err)
       })
       
 })
 
-// app.put('/api/persons/:id', (request, response) => {
-//     const {content, important } = request.body
-//     const id = request.params.id 
+app.put('/api/persons/:id', (request, response, next) => {
+    const {name, number } = request.body
+    const id = request.params.id 
 
-// })
+    Person.findOne({name: name})
+    .then(existingPerson => {
+      if(existingPerson){
+          
+        console.log("name already exists, number will automatically update")
+
+          existingPerson.number = number
+
+          return existingPerson.save().then((updatedPerson) => {
+            response.json(updatedPerson)
+          })
+          .catch(err => next(err))
+
+      } else {
+
+        const person =  new Person({
+        name: name,
+        number: number
+      })
+
+        return person.save().then(savedPerson => {
+          response.status(200).json(savedPerson)
+        })
+      }
+    })
+    .catch(err => next(err))
+
+})
 
 
 const generateId = () => {
@@ -155,7 +180,7 @@ const generateId = () => {
 
 }
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
 
     const {name, number} = request.body
 
@@ -168,22 +193,29 @@ app.post('/api/persons', (request, response) => {
     Person.findOne({name: name})
     .then(existingPerson => {
       if(existingPerson){
-          return response.status(400).json({
-            error: 'name already exists'
+          
+        console.log("name already exists, number will automatically update")
+
+          existingPerson.number = number
+
+          return existingPerson.save().then((updatedPerson) => {
+            response.json(updatedPerson)
           })
-      }
+          .catch(err => next(err))
 
+      } else {
 
-      const person =  new Person({
+        const person =  new Person({
         name: name,
         number: number
       })
 
-      person.save().then(savedPerson => {
-        response.json(savedPerson)
-      })
-
+        return person.save().then(savedPerson => {
+          response.status(200).json(savedPerson)
+        })
+      }
     })
+    .catch(err => next(err))
   
 
 })
@@ -193,6 +225,18 @@ const unknownEndpoint = (request, response) => {
 }
 
 app.use(unknownEndpoint)
+
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  }
+
+  next(error)
+}
+
+app.use(errorHandler)
 
 const PORT = process.env.PORT
 app.listen(PORT, () => {
