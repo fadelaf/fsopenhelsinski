@@ -12,8 +12,8 @@ const requestLogger = (request, response, next) => {
   next()
 }
 
-app.use(express.static('dist'))
 app.use(express.json())
+app.use(express.static('dist'))
 app.use(requestLogger)
 
 
@@ -41,7 +41,7 @@ app.get('/', (request, response) => {
     response.json('<h1>Hello World!</h1>')
 })
 
-app.get('/api/notes', (request, response) => {
+app.get('/api/notes', (request, response, next) => {
     // response.json(notes)
     Note.find({}).then(notes => {
       response.json(notes)
@@ -78,7 +78,7 @@ app.delete('/api/notes/:id', (request, response, next) => {
 
 })
 
-app.put('/api/notes/:id', (request, response) => {
+app.put('/api/notes/:id', (request, response, next) => {
     const {content, important } = request.body
     const id = request.params.id 
     // console.log(content, important, id) 
@@ -124,7 +124,7 @@ const generateId = () => {
  return String(maxId + 1) 
 }
 
-app.post('/api/notes', (request, response) => {
+app.post('/api/notes', (request, response, next) => {
 
     const body = request.body
 
@@ -142,6 +142,7 @@ app.post('/api/notes', (request, response) => {
     note.save().then(savedNote => {
       response.json(savedNote)
     })
+    .catch(err => next(err))
 })
 
 const unknownEndpoint = (request, response) => {
@@ -155,6 +156,8 @@ const errorHandler = (error, request, response, next) => {
 
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'malformatted id' })
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).json({error: error.message})
   }
 
   next(error)
