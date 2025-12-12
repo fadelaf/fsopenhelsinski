@@ -61,6 +61,12 @@ const PersonForm = (props) => {
               setTimeout(() => {
                 props.setNotif(null)
               },5000)
+          }).catch(err => {
+            console.log(err.response.data.error)
+             props.setNotif(err.response.data.error)
+              setTimeout(() => {
+                props.setNotif(null)
+              },5000)
           })
 
 

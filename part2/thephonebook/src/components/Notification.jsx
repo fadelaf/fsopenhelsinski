@@ -12,9 +12,11 @@ const Notification = ({message}) => {
         styleNotif = 'addUpdate'
     }
     
-    if (message.includes('removed')){
+    if (message.includes('removed') || message.includes('failed')  ){
         styleNotif = 'error'
     }
+
+  
 
     return (
         <div className={styleNotif}>
